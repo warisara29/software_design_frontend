@@ -20,16 +20,19 @@ import DashboardRoundedIcon from "@mui/icons-material/DashboardRounded";
 import DescriptionRoundedIcon from "@mui/icons-material/DescriptionRounded";
 import HomeWorkRoundedIcon from "@mui/icons-material/HomeWorkRounded";
 import ShieldRoundedIcon from "@mui/icons-material/ShieldRounded";
+import BoltRoundedIcon from "@mui/icons-material/BoltRounded";
 import LightModeRoundedIcon from "@mui/icons-material/LightModeRounded";
 import DarkModeRoundedIcon from "@mui/icons-material/DarkModeRounded";
 import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
 import { useColorMode } from "@/theme/ColorModeContext";
+import { HealthBadges } from "./HealthBadges";
 
 const NAV = [
   { href: "/admin", label: "Dashboard", icon: <DashboardRoundedIcon /> },
   { href: "/admin/acquisitions", label: "Acquisitions", icon: <HomeWorkRoundedIcon /> },
   { href: "/admin/contracts", label: "Contracts", icon: <DescriptionRoundedIcon /> },
   { href: "/admin/warranty", label: "Warranty Lookup", icon: <ShieldRoundedIcon /> },
+  { href: "/admin/triggers", label: "Test Triggers", icon: <BoltRoundedIcon /> },
 ];
 
 const DRAWER_WIDTH = 240;
@@ -73,6 +76,13 @@ export const AdminShell = ({ children }: { children: ReactNode }) => {
             );
           })}
         </List>
+        <Divider />
+        <Box sx={{ p: 2 }}>
+          <Typography variant="overline" color="text.secondary" sx={{ display: "block", mb: 1 }}>
+            Service health
+          </Typography>
+          <HealthBadges />
+        </Box>
         <Divider />
         <List>
           <ListItem disablePadding>

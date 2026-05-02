@@ -18,6 +18,7 @@ import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import { useAcquisitions } from "@/lib/queries";
 import { StatusBadge } from "@/components/StatusBadge";
 import { ErrorState } from "@/components/ErrorState";
+import { PdfViewerDialog } from "@/components/PdfViewerDialog";
 import { ACQUISITION_STATUSES, type Acquisition, type AcquisitionStatus } from "@/lib/types";
 import { formatCurrency, formatDateTime, shortId } from "@/lib/format";
 
@@ -78,6 +79,7 @@ const Inner = () => {
 
   const { data, isLoading, error, refetch } = useAcquisitions(status);
   const [selected, setSelected] = useState<Acquisition | null>(null);
+  const [pdfOpen, setPdfOpen] = useState(false);
 
   const rows = useMemo(() => (data ?? []).map((a) => ({ id: a.acquisitionId, ...a })), [data]);
 
@@ -191,10 +193,7 @@ const Inner = () => {
                     <Button
                       variant="contained"
                       endIcon={<OpenInNewRoundedIcon />}
-                      component="a"
-                      href={selected.willingContract.fileUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                      onClick={() => setPdfOpen(true)}
                       disabled={!selected.willingContract.fileUrl}
                     >
                       ดู PDF
@@ -210,6 +209,13 @@ const Inner = () => {
           ) : null}
         </Box>
       </Drawer>
+
+      <PdfViewerDialog
+        open={pdfOpen}
+        onClose={() => setPdfOpen(false)}
+        fileUrl={selected?.willingContract?.fileUrl}
+        title={`Willing Contract · ${selected?.acquisitionId?.slice(0, 8) ?? ""}`}
+      />
     </Stack>
   );
 };

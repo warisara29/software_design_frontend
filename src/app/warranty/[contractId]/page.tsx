@@ -1,6 +1,6 @@
 "use client";
 
-import { use } from "react";
+import { use, useState } from "react";
 import Link from "next/link";
 import Container from "@mui/material/Container";
 import Stack from "@mui/material/Stack";
@@ -20,14 +20,17 @@ import TableBody from "@mui/material/TableBody";
 import TableContainer from "@mui/material/TableContainer";
 import LinearProgress from "@mui/material/LinearProgress";
 import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
+import ReportProblemRoundedIcon from "@mui/icons-material/ReportProblemRounded";
 import { AppShell } from "@/components/AppShell";
 import { ErrorState } from "@/components/ErrorState";
 import { StatusBadge } from "@/components/StatusBadge";
+import { DefectReportDialog } from "@/components/DefectReportDialog";
 import { useWarrantyByContract } from "@/lib/queries";
 import { daysUntil, formatDate, formatDateTime, shortId } from "@/lib/format";
 
 const Inner = ({ contractId }: { contractId: string }) => {
   const { data: warranty, isLoading, error, refetch } = useWarrantyByContract(contractId);
+  const [reportOpen, setReportOpen] = useState(false);
 
   if (isLoading) {
     return (
@@ -127,9 +130,17 @@ const Inner = ({ contractId }: { contractId: string }) => {
 
       <Card variant="outlined">
         <CardContent>
-          <Typography variant="h6" gutterBottom>
-            Claims ({claims.length})
-          </Typography>
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ alignItems: { sm: "center" }, justifyContent: "space-between", mb: 1 }}>
+            <Typography variant="h6">Claims ({claims.length})</Typography>
+            <Button
+              variant="contained"
+              color="warning"
+              startIcon={<ReportProblemRoundedIcon />}
+              onClick={() => setReportOpen(true)}
+            >
+              รายงานข้อบกพร่อง
+            </Button>
+          </Stack>
           {claims.length === 0 ? (
             <Typography variant="body2" color="text.secondary">
               ยังไม่มี claim สำหรับ warranty นี้
@@ -166,6 +177,8 @@ const Inner = ({ contractId }: { contractId: string }) => {
           )}
         </CardContent>
       </Card>
+
+      <DefectReportDialog open={reportOpen} onClose={() => setReportOpen(false)} warranty={warranty} />
     </Stack>
   );
 };

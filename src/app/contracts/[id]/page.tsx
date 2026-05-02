@@ -1,6 +1,6 @@
 "use client";
 
-import { use } from "react";
+import { use, useState } from "react";
 import Link from "next/link";
 import Container from "@mui/material/Container";
 import Stack from "@mui/material/Stack";
@@ -20,6 +20,7 @@ import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
 import { AppShell } from "@/components/AppShell";
 import { StatusBadge } from "@/components/StatusBadge";
 import { ErrorState } from "@/components/ErrorState";
+import { PdfViewerDialog } from "@/components/PdfViewerDialog";
 import { useContract } from "@/lib/queries";
 import { formatDateTime, shortId } from "@/lib/format";
 import type { ContractStatus } from "@/lib/types";
@@ -45,6 +46,7 @@ const Field = ({ label, value, mono }: { label: string; value: React.ReactNode; 
 
 const ContractDetailInner = ({ id }: { id: string }) => {
   const { data: contract, isLoading, error, refetch } = useContract(id);
+  const [pdfOpen, setPdfOpen] = useState(false);
 
   if (isLoading) {
     return (
@@ -146,10 +148,7 @@ const ContractDetailInner = ({ id }: { id: string }) => {
               <Button
                 variant="contained"
                 endIcon={<OpenInNewRoundedIcon />}
-                component="a"
-                href={contract.draft.fileUrl}
-                target="_blank"
-                rel="noopener noreferrer"
+                onClick={() => setPdfOpen(true)}
                 disabled={!contract.draft.fileUrl}
               >
                 ดู PDF
@@ -172,6 +171,13 @@ const ContractDetailInner = ({ id }: { id: string }) => {
           </Button>
         </Box>
       ) : null}
+
+      <PdfViewerDialog
+        open={pdfOpen}
+        onClose={() => setPdfOpen(false)}
+        fileUrl={contract.draft?.fileUrl}
+        title={`Contract Draft · ${shortId(contract.contractId, 8)}`}
+      />
     </Stack>
   );
 };
