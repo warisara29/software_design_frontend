@@ -1,90 +1,135 @@
 "use client";
 
-import Stack from "@mui/material/Stack";
 import Box from "@mui/material/Box";
+import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import { DocField, DocFooter, DocSection, DocTitle, SignatureBlock } from "./DocumentChrome";
-import { formatCurrency, formatDate, formatDateTime } from "@/lib/format";
+import { Fill } from "./Fill";
+import { formatThaiDate, thaiDateParts, shortId } from "@/lib/format";
 import type { Acquisition } from "@/lib/types";
+
+const Para = ({ children, indent = false }: { children: React.ReactNode; indent?: boolean }) => (
+  <Typography
+    component="p"
+    sx={{ textIndent: indent ? "2.5em" : 0, fontSize: 16, lineHeight: 1.9, m: 0, mb: 0.5 }}
+  >
+    {children}
+  </Typography>
+);
+
+const Clause = ({ no, title, children }: { no: string; title: string; children: React.ReactNode }) => (
+  <Box sx={{ mb: 2 }}>
+    <Typography component="p" sx={{ textIndent: "2.5em", fontSize: 16 }}>
+      <b>ข้อ {no}.</b> {title}
+    </Typography>
+    <Box sx={{ mt: 0.5 }}>{children}</Box>
+  </Box>
+);
+
+const SignatureLine = ({ role, refId }: { role: string; refId?: string | null }) => (
+  <Stack spacing={0.25} sx={{ alignItems: "flex-end", mb: 1.5 }}>
+    <Typography component="div" sx={{ fontSize: 16 }}>
+      ลงชื่อ <Fill width={200} value="" /> {role}
+    </Typography>
+    <Typography component="div" sx={{ fontSize: 15 }}>
+      ( <Fill width={180} mono value={refId ? shortId(refId, 16) : ""} /> )
+    </Typography>
+  </Stack>
+);
 
 export const WillingContractDocumentView = ({ acquisition }: { acquisition: Acquisition }) => {
   const wc = acquisition.willingContract;
-  const drafted = wc?.draftedAt ? formatDate(wc.draftedAt) : formatDate(acquisition.createdAt);
+  const drafted = wc?.draftedAt ?? acquisition.createdAt;
+  const dateParts = thaiDateParts(drafted);
+  const approvedDate = formatThaiDate(acquisition.approvedAt);
+
+  const priceDisplay = wc?.agreedPrice != null ? wc.agreedPrice.toLocaleString() : "";
+  const estimatedDisplay = acquisition.estimatedValue != null ? acquisition.estimatedValue.toLocaleString() : "";
 
   return (
-    <>
-      <DocTitle
-        title="หนังสือแสดงเจตจำนงในการซื้อขาย"
-        subtitle="(Willing-to-Sell Contract)"
-        refNo={wc?.willingContractId ?? acquisition.acquisitionId ?? "—"}
-      />
+    <Box sx={{ fontSize: 16, lineHeight: 1.9, color: "#000" }}>
+      <Typography
+        component="div"
+        sx={{ textAlign: "center", fontSize: 22, fontWeight: 700, letterSpacing: 0.5, mb: 3 }}
+      >
+        หนังสือแสดงเจตจำนงในการซื้อขายอสังหาริมทรัพย์
+      </Typography>
 
-      <Box sx={{ mb: 3, lineHeight: 2 }}>
-        <Typography component="div" sx={{ textIndent: "3em" }}>
-          หนังสือฉบับนี้ทำขึ้น ณ วันที่ <b>{drafted}</b> โดย <b>{acquisition.sellerName ?? "ผู้จะขาย"}</b>
-          {acquisition.sellerId ? <> (รหัส <code>{acquisition.sellerId}</code>)</> : null} ในฐานะเจ้าของทรัพย์สินตามรายละเอียดด้านล่าง
-          แสดงเจตจำนงต่อบริษัทฯ ในการขายทรัพย์สินดังกล่าวภายใต้เงื่อนไขที่ระบุไว้
+      <Stack spacing={0.5} sx={{ alignItems: "flex-end", mb: 3 }}>
+        <Typography component="div">
+          ทำที่ <Fill width={260} value="สำนักงานบริษัท Real Estate จำกัด" />
         </Typography>
-      </Box>
-
-      <DocSection number={1} heading="รายละเอียดทรัพย์สิน">
-        <Stack spacing={0}>
-          <DocField label="เลขที่ทรัพย์ / Property ID" value={acquisition.propertyId ?? "—"} />
-          <DocField label="ที่อยู่" value={acquisition.address ?? "—"} />
-          <DocField
-            label="พื้นที่"
-            value={acquisition.areaSqm != null ? `${acquisition.areaSqm.toLocaleString()} ตร.ม.` : "—"}
-          />
-          <DocField label="ประเภทพื้นที่ (Zone)" value={acquisition.zoneType ?? "—"} />
-          <DocField label="เลขที่การสำรวจ / Survey ID" value={acquisition.surveyId ?? "—"} />
-        </Stack>
-      </DocSection>
-
-      <DocSection number={2} heading="ราคาและเงื่อนไข">
-        <Stack spacing={0}>
-          <DocField label="ราคาประเมิน" value={formatCurrency(acquisition.estimatedValue ?? null)} />
-          <DocField
-            label="ราคาที่ตกลง (Agreed Price)"
-            value={
-              wc?.agreedPrice != null ? (
-                <b>{formatCurrency(wc.agreedPrice)}</b>
-              ) : (
-                "ยังไม่กำหนด"
-              )
-            }
-          />
-        </Stack>
-      </DocSection>
-
-      <DocSection number={3} heading="ผู้จะขาย">
-        <Stack spacing={0}>
-          <DocField label="ชื่อผู้จะขาย" value={acquisition.sellerName ?? "—"} />
-          <DocField label="รหัสผู้จะขาย / Seller ID" value={acquisition.sellerId ?? "—"} />
-        </Stack>
-      </DocSection>
-
-      <DocSection number={4} heading="แบบและสถานะ">
-        เอกสารฉบับนี้จัดทำตามแม่แบบเลขที่ <code>{wc?.templateId ?? "—"}</code> สถานะปัจจุบันของกระบวนการ acquisition คือ{" "}
-        <b>{acquisition.status ?? "—"}</b>
-        {acquisition.approvedAt ? (
-          <>
-            {" "}อนุมัติเมื่อ <b>{formatDateTime(acquisition.approvedAt)}</b>
-          </>
-        ) : null}
-      </DocSection>
-
-      <DocSection number={5} heading="ข้อตกลง">
-        ผู้จะขายยืนยันว่ามีกรรมสิทธิ์อย่างถูกต้องในทรัพย์สินตามที่ระบุข้างต้น และยินยอมให้บริษัทฯ
-        ดำเนินการตรวจสอบเอกสารสิทธิ์เพื่อจัดทำสัญญาจะซื้อจะขายฉบับสมบูรณ์ในลำดับต่อไป
-      </DocSection>
-
-      <Stack direction="row" spacing={4} sx={{ mt: 6 }}>
-        <SignatureBlock partyLabel="ผู้จะขาย" nameOrId={acquisition.sellerName ?? acquisition.sellerId} date={drafted} />
-        <SignatureBlock partyLabel="ตัวแทนบริษัทฯ" nameOrId="Acquisition Officer" date={drafted} />
-        <SignatureBlock partyLabel="พยาน" nameOrId="—" />
+        <Typography component="div">
+          วันที่ <Fill width={50} value={dateParts?.day} /> เดือน <Fill width={120} value={dateParts?.month} /> พ.ศ. <Fill width={70} value={dateParts?.year} />
+        </Typography>
       </Stack>
 
-      <DocFooter />
-    </>
+      <Para indent>
+        ในหนังสือฉบับนี้ &ldquo;ผู้แสดงเจตจำนง&rdquo; (ผู้จะขาย) ให้หมายถึง <Fill width={260} value={acquisition.sellerName ?? ""} />
+        {" "}เลขประจำตัว <Fill width={180} mono value={acquisition.sellerId ? shortId(acquisition.sellerId, 16) : ""} />
+        {" "}อยู่ที่ <Fill width={320} /> และ &ldquo;ผู้รับเจตจำนง&rdquo; ให้หมายถึง บริษัท Real Estate จำกัด
+        ทั้งสองฝ่ายตกลงกันดังมีข้อความต่อไปนี้
+      </Para>
+
+      <Clause no="1" title="รายละเอียดทรัพย์สินที่จะซื้อขาย">
+        <Para>
+          ผู้แสดงเจตจำนงเป็นเจ้าของทรัพย์สินซึ่งมีรายละเอียดดังนี้ ที่อยู่ <Fill width={360} value={acquisition.address ?? ""} block />
+        </Para>
+        <Para>
+          เลขที่ทรัพย์ <Fill width={180} mono value={acquisition.propertyId ? shortId(acquisition.propertyId, 16) : ""} />
+          {" "}เลขที่การสำรวจ <Fill width={180} mono value={acquisition.surveyId ? shortId(acquisition.surveyId, 16) : ""} />
+          {" "}เนื้อที่ <Fill width={80} value={acquisition.areaSqm != null ? acquisition.areaSqm.toString() : ""} /> ตารางเมตร
+          {" "}ประเภทพื้นที่ <Fill width={140} value={acquisition.zoneType ?? ""} />
+        </Para>
+      </Clause>
+
+      <Clause no="2" title="ราคาประเมินและราคาที่ตกลง">
+        <Para>
+          ราคาประเมินของทรัพย์สินตามผลการสำรวจคือ <Fill width={140} value={estimatedDisplay} /> บาท
+          และคู่สัญญาตกลงราคาซื้อขายเบื้องต้นที่ <Fill width={140} value={priceDisplay} /> บาท
+          ( <Fill width={260} /> ) โดยราคานี้ยังอยู่ภายใต้การตรวจสอบเอกสารสิทธิ์และการอนุมัติของบริษัทฯ
+        </Para>
+      </Clause>
+
+      <Clause no="3" title="สถานะของกระบวนการ">
+        <Para>
+          ขณะออกหนังสือฉบับนี้ acquisition มีสถานะ <Fill width={180} value={acquisition.status ?? ""} mono />
+          {acquisition.approvedAt ? (
+            <>
+              {" "}และได้รับการอนุมัติเมื่อวันที่ <Fill width={200} value={approvedDate !== "—" ? approvedDate : ""} />
+            </>
+          ) : null}
+        </Para>
+      </Clause>
+
+      <Clause no="4" title="คำรับรองของผู้แสดงเจตจำนง">
+        <Para>
+          ผู้แสดงเจตจำนงขอรับรองว่า เป็นเจ้าของกรรมสิทธิ์อย่างถูกต้องในทรัพย์สินดังกล่าว ทรัพย์ไม่ติดภาระผูกพันใด ๆ
+          และยินยอมให้บริษัทฯ ตรวจสอบเอกสารสิทธิ์เพื่อจัดทำสัญญาจะซื้อจะขายฉบับสมบูรณ์ในลำดับต่อไป
+        </Para>
+      </Clause>
+
+      <Clause no="5" title="การยกเลิก">
+        <Para>
+          หากผลการตรวจสอบพบว่าทรัพย์สินไม่เป็นไปตามที่แสดงเจตจำนงไว้ บริษัทฯ มีสิทธิ์ยกเลิกหนังสือฉบับนี้
+          โดยไม่ต้องเสียค่าใช้จ่ายใด ๆ
+        </Para>
+      </Clause>
+
+      <Para indent>
+        ทั้งสองฝ่ายได้อ่านและเข้าใจข้อความในหนังสือฉบับนี้โดยตลอดแล้ว เห็นว่าถูกต้องตรงตามเจตนา
+        จึงได้ลงลายมือชื่อไว้เป็นสำคัญ
+      </Para>
+
+      <Box sx={{ mt: 6 }}>
+        <SignatureLine role="ผู้แสดงเจตจำนง (ผู้จะขาย)" refId={acquisition.sellerId} />
+        <SignatureLine role="ตัวแทนบริษัทฯ" />
+        <SignatureLine role="พยาน" />
+        <SignatureLine role="พยาน" />
+      </Box>
+
+      <Typography component="div" sx={{ mt: 4, fontSize: 11, color: "#888", textAlign: "center" }}>
+        เอกสารฉบับนี้สร้างจากระบบ Real Estate Portal · Acquisition ID {acquisition.acquisitionId ?? "—"}
+      </Typography>
+    </Box>
   );
 };

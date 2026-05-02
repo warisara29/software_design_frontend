@@ -43,6 +43,45 @@ export const formatCurrency = (n: number | undefined | null): string => {
 export const isUuid = (s: string): boolean =>
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s.trim());
 
+const THAI_MONTHS = [
+  "มกราคม",
+  "กุมภาพันธ์",
+  "มีนาคม",
+  "เมษายน",
+  "พฤษภาคม",
+  "มิถุนายน",
+  "กรกฎาคม",
+  "สิงหาคม",
+  "กันยายน",
+  "ตุลาคม",
+  "พฤศจิกายน",
+  "ธันวาคม",
+];
+
+export const thaiDateParts = (iso: string | undefined | null): { day: string; month: string; year: string } | null => {
+  if (!iso) return null;
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return null;
+  return {
+    day: String(d.getDate()),
+    month: THAI_MONTHS[d.getMonth()],
+    year: String(d.getFullYear() + 543),
+  };
+};
+
+export const formatThaiDate = (iso: string | undefined | null): string => {
+  const p = thaiDateParts(iso);
+  return p ? `${p.day} ${p.month} ${p.year}` : "—";
+};
+
+export const addDays = (iso: string | undefined | null, days: number): string | null => {
+  if (!iso) return null;
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return null;
+  d.setDate(d.getDate() + days);
+  return d.toISOString();
+};
+
 export const randomUuid = (): string => {
   if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
     return crypto.randomUUID();
