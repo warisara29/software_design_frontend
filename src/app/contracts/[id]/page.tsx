@@ -20,7 +20,8 @@ import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
 import { AppShell } from "@/components/AppShell";
 import { StatusBadge } from "@/components/StatusBadge";
 import { ErrorState } from "@/components/ErrorState";
-import { PdfViewerDialog } from "@/components/PdfViewerDialog";
+import { DocumentViewerDialog } from "@/components/DocumentViewerDialog";
+import { ContractDocumentView } from "@/components/documents/ContractDocumentView";
 import { useContract } from "@/lib/queries";
 import { formatDateTime, shortId } from "@/lib/format";
 import type { ContractStatus } from "@/lib/types";
@@ -149,9 +150,8 @@ const ContractDetailInner = ({ id }: { id: string }) => {
                 variant="contained"
                 endIcon={<OpenInNewRoundedIcon />}
                 onClick={() => setPdfOpen(true)}
-                disabled={!contract.draft.fileUrl}
               >
-                ดู PDF
+                ดูเอกสารสัญญา
               </Button>
             </Stack>
           </CardContent>
@@ -172,12 +172,13 @@ const ContractDetailInner = ({ id }: { id: string }) => {
         </Box>
       ) : null}
 
-      <PdfViewerDialog
+      <DocumentViewerDialog
         open={pdfOpen}
         onClose={() => setPdfOpen(false)}
-        fileUrl={contract.draft?.fileUrl}
-        title={`Contract Draft · ${shortId(contract.contractId, 8)}`}
-      />
+        title={`สัญญาจะซื้อจะขาย · ${shortId(contract.contractId, 8)}`}
+      >
+        <ContractDocumentView contract={contract} />
+      </DocumentViewerDialog>
     </Stack>
   );
 };

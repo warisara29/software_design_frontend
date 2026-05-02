@@ -18,7 +18,8 @@ import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import { useAcquisitions } from "@/lib/queries";
 import { StatusBadge } from "@/components/StatusBadge";
 import { ErrorState } from "@/components/ErrorState";
-import { PdfViewerDialog } from "@/components/PdfViewerDialog";
+import { DocumentViewerDialog } from "@/components/DocumentViewerDialog";
+import { WillingContractDocumentView } from "@/components/documents/WillingContractDocumentView";
 import { ACQUISITION_STATUSES, type Acquisition, type AcquisitionStatus } from "@/lib/types";
 import { formatCurrency, formatDateTime, shortId } from "@/lib/format";
 
@@ -194,9 +195,8 @@ const Inner = () => {
                       variant="contained"
                       endIcon={<OpenInNewRoundedIcon />}
                       onClick={() => setPdfOpen(true)}
-                      disabled={!selected.willingContract.fileUrl}
                     >
-                      ดู PDF
+                      ดูเอกสาร Willing Contract
                     </Button>
                   </Stack>
                 </Card>
@@ -210,12 +210,13 @@ const Inner = () => {
         </Box>
       </Drawer>
 
-      <PdfViewerDialog
+      <DocumentViewerDialog
         open={pdfOpen}
         onClose={() => setPdfOpen(false)}
-        fileUrl={selected?.willingContract?.fileUrl}
         title={`Willing Contract · ${selected?.acquisitionId?.slice(0, 8) ?? ""}`}
-      />
+      >
+        {selected ? <WillingContractDocumentView acquisition={selected} /> : null}
+      </DocumentViewerDialog>
     </Stack>
   );
 };
